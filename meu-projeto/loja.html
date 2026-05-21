@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trituno | Loja</title>
+    <link rel="stylesheet" href="../css/style.css"> 
+    <link rel="stylesheet" href="../css/loja.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo">
+            <h1>TRITUNO</h1>
+        </div>
+        
+        <nav class="menu">
+            <a href="licoes.html"><i class="fa-solid fa-house"></i> APRENDER</a>
+            <a href="#" class="active"><i class="fa-solid fa-shopping-cart"></i> LOJA</a>
+            <a href="configuracoes.html"><i class="fa-solid fa-gear"></i> CONFIGURAÇÕES</a>
+        </nav>
+
+        <div class="user-progress">
+            <p>Progresso Geral</p>
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill" style="width: 0%;"></div>
+            </div>
+            <span id="progressText" class="progress-text">0% concluído</span>
+        </div>
+    </aside>
+
+    <main class="main-content-wrapper">
+        
+        <div class="navigation-header">
+            <a href="licoes.html" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Voltar para as Lições
+            </a>
+        </div>
+
+        <div class="gamification-container">
+            <div class="shop-balance-card auth-box">
+                <h2>Loja do Trituno</h2>
+                <div class="balance-badge">
+                    <i class="fas fa-gem icon-gem"></i> <span>350 Cristais</span>
+                </div>
+            </div>
+
+            <div class="shop-grid">
+                
+                <div class="shop-item-card auth-box premium-card">
+                    <div class="shop-item-icon color-gold">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <div class="shop-item-info">
+                        <div class="premium-badge">RECOMENDADO</div>
+                        <h3>Trituno Premium</h3>
+                        <p>Estude teoria musical sem interrupções! Ganhe <strong>Vidas Ilimitadas <i class="fas fa-heart"></i> ∞</strong> e remova 100% dos anúncios do sistema.</p>
+                    </div>
+                    <button class="btn-shop-buy btn-premium">
+                        R$ 19,90/MÊS
+                    </button>
+                </div>
+
+                <div class="shop-item-card auth-box">
+                    <div class="shop-item-icon color-blue">
+                        <i class="fas fa-snowflake"></i>
+                    </div>
+                    <div class="shop-item-info">
+                        <h3>Bloqueio de Ofensiva</h3>
+                        <p>Permite que sua ofensiva fique intacta se você perder um dia de lições.</p>
+                    </div>
+                    <button class="btn-shop-buy">
+                        <i class="fas fa-gem"></i> 100
+                    </button>
+                </div>
+
+                <div class="shop-item-card auth-box">
+                    <div class="shop-item-icon color-red">
+                        <i class="far fa-heart"></i>
+                    </div>
+                    <div class="shop-item-info">
+                        <h3>Coração</h3>
+                        <p>ganhe mais vidas para continuar jogando.</p>
+                    </div>
+                    <button class="btn-shop-buy">
+                        <i class="fas fa-gem"></i> 25
+                    </button>
+                </div>
+
+                <div class="shop-item-card auth-box">
+                    <div class="shop-item-icon color-carmesin">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="shop-item-info">
+                        <h3>Coração de cristal</h3>
+                        <p>aumente seu limite de 5 vidas para 10 permanentemente.</p>
+                    </div>
+                    <button class="btn-shop-buy">
+                        <i class="fas fa-gem"></i> 750
+                    </button>
+                </div>
+
+                <div class="shop-item-card auth-box">
+                    <div class="shop-item-icon color-orange">
+                        <i class="fas fa-dice"></i>
+                    </div>
+                    <div class="shop-item-info">
+                        <h3>Dobro ou Nada</h3>
+                        <p>Aposte 50 cristais e ganhe 100 se conseguir manter sua ofensiva por 7 dias.</p>
+                    </div>
+                    <button class="btn-shop-buy">
+                        <i class="fas fa-gem"></i> 50
+                    </button>
+                </div>
+
+                <div class="shop-item-card auth-box">
+                    <div class="shop-item-icon color-purple">
+                        <i class="fas fa-guitar"></i>
+                    </div>
+                    <div class="shop-item-info">
+                        <h3>Guitarra Lendária</h3>
+                        <p>Um item cosmético exclusivo para exibir no seu perfil e rankings.</p>
+                    </div>
+                    <button class="btn-shop-buy status-owned" disabled>
+                        Adquirido
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

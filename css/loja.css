@@ -1,0 +1,372 @@
+:root {
+    --primary: #d16207;
+    --primary-dark: #7c3b06;
+    --text-main: #3c3c3c;
+    --text-secondary: #afafaf;
+    --bg: #ffffff;
+    --input-bg: #f7f7f7;
+    --border-color: #e5e5e5;
+    --error: #ff4b4b;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* =========================================
+   2. Estrutura da Barra Lateral (Sidebar)
+   ========================================= */
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    background-color: rgba(247, 247, 247, 0.95);
+    border-right: 2px solid #e5e5e5;
+    position: fixed;
+    top: 0;   /* Adicionado para garantir o alinhamento no topo */
+    left: 0;  /* Adicionado para cravar na esquerda */
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    backdrop-filter: blur(8px);
+}
+
+.logo h1 {
+    color: var(--primary);
+    font-size: 1.8rem;
+    font-weight: 900;
+    margin-bottom: 40px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.menu a {
+    text-decoration: none;
+    color: #4b4b4b;
+    font-weight: bold;
+    padding: 15px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: 0.2s;
+}
+
+.menu a.active {
+    background-color: #fff2da;
+    color: var(--primary);
+    border: 2px solid #fab65c;
+}
+
+/* Progresso do Usuário na Sidebar */
+.user-progress {
+    margin-top: auto; /* Empurra para o final da sidebar */
+    padding: 20px 0;
+    border-top: 2px solid #e5e5e5;
+}
+
+.user-progress p {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #777;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 16px;
+    background-color: #e5e5e5;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    margin-bottom: 8px;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--primary);
+    border-radius: 20px;
+    background-image: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-text {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #4b4b4b;
+}
+
+/* =========================================
+   3. Área do Conteúdo Principal (Loja)
+   ========================================= */
+.main-content-wrapper {
+    margin-left: 260px; /* Batendo EXATAMENTE com a largura da sidebar */
+    padding: 50px 40px;
+    width: calc(100% - 260px); /* Ocupa apenas o espaço restante da tela */
+    min-height: 100vh;
+    background-color: #ffffff;
+}
+
+.gamification-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Botão de Voltar */
+.navigation-header {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto 25px;
+    display: flex;
+}
+
+.btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: color 0.2s, transform 0.2s;
+}
+
+.btn-back:hover {
+    color: var(--primary);
+    transform: translateX(-3px);
+}
+
+/* =========================================
+   4. Cards e Elementos Visuais da Loja
+   ========================================= */
+.shop-balance-card.auth-box,
+.shop-item-card.auth-box {
+    background-color: #ffffff;
+    border: 4px solid var(--border-color);
+    border-bottom: 10px solid var(--border-color);
+    border-radius: 28px;
+}
+
+.shop-balance-card.auth-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 35px;
+    margin-bottom: 30px;
+}
+
+.shop-balance-card h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--text-main);
+}
+
+.balance-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #f0f4f8;
+    padding: 12px 22px;
+    border-radius: 18px;
+    border: 3px solid var(--border-color);
+    font-weight: 800;
+    color: #1cb0f6;
+}
+
+.icon-gem {
+    font-size: 1.4rem;
+    animation: shopFloat 3s ease-in-out infinite;
+}
+
+.shop-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.shop-item-card.auth-box {
+    display: flex;
+    align-items: center;
+    padding: 25px;
+    gap: 25px;
+}
+
+.shop-item-icon {
+    width: 75px;
+    height: 75px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    color: white;
+}
+
+.color-blue { background-color: #1cb0f6; }
+.color-orange { background-color: #ff9600; }
+.color-purple { background-color: #8549ff; }
+.color-red { background-color: #ff4b4b; }
+.color-carmesin { background-color: #a12929; }
+.color-gold { background-color: #b1922e; }
+
+.shop-item-info {
+    flex: 1;
+}
+
+.shop-item-info h3 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin-bottom: 4px;
+}
+
+.shop-item-info p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.btn-shop-buy {
+    padding: 14px 28px;
+    background-color: #ffffff;
+    border: 3px solid var(--border-color);
+    border-bottom: 6px solid var(--border-color);
+    border-radius: 18px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #1cb0f6;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.1s, background-color 0.2s;
+}
+
+.btn-shop-buy:not(:disabled):active {
+    transform: translateY(3px);
+    border-bottom-width: 3px;
+}
+
+.btn-shop-buy:not(:disabled):hover {
+    background-color: var(--input-bg);
+}
+
+.btn-shop-buy.status-owned {
+    background-color: var(--input-bg);
+    color: var(--text-secondary);
+    border-bottom-width: 3px;
+    cursor: not-allowed;
+}
+
+@keyframes shopFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+/* =========================================
+   5. Responsividade
+   ========================================= */
+@media (max-width: 992px) {
+    .main-content-wrapper {
+        margin-left: 0;
+        width: 100%;
+        padding: 20px;
+    }
+    .shop-item-card.auth-box {
+        flex-direction: column;
+        text-align: center;
+    }
+    .btn-shop-buy {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* =========================================
+   Card Premium com Destaque em Laranja
+   ========================================= */
+
+.shop-item-card.auth-box.premium-card {
+    /* Degradê vibrante: Laranja para Amarelo Ouro */
+    background: linear-gradient(135deg, var(--primary) 0%, #fab65c 100%) !important;
+    
+    /* Bordas em tons de marrom/laranja escuro para manter o efeito 3D */
+    border-color: #e68a00 !important;
+    border-bottom: 10px solid #cc7a00 !important;
+    
+    position: relative;
+    overflow: hidden;
+}
+
+/* Ajustando as cores do texto para branco, para contrastar com o laranja */
+.premium-card h3 {
+    color: #ffffff !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Sombra leve para destacar o título */
+}
+
+.premium-card p {
+    color: #ffffff !important;
+    font-weight: 700; /* Deixa o texto branco mais visível */
+}
+
+/* Ajuste no ícone do coração para ele não sumir no fundo laranja */
+.premium-card p i.fa-heart {
+    color: #ff4b4b; /* Mantém o vermelho */
+    background-color: rgba(255, 255, 255, 0.9); /* Um fundinho branco circular opcional */
+    padding: 2px;
+    border-radius: 4px;
+}
+
+/* Etiqueta de Recomendado agora em Branco com texto Laranja */
+.premium-badge {
+    background-color: #ffffff !important;
+    color: #ff9600 !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Botão de compra no Card Laranja: Branco com clique Cinza */
+.btn-premium {
+    background-color: #ffffff !important;
+    color: #ff9600 !important;
+    border-color: #e5e5e5 !important;
+    border-bottom: 6px solid #d9d9d9 !important;
+    box-shadow: none !important;
+}
+
+.btn-premium:not(:disabled):hover {
+    background-color: #f7f7f7 !important;
+}
+
+.btn-premium:not(:disabled):active {
+    transform: translateY(3px);
+    border-bottom-width: 3px !important;
+}
+
+/* Opcional: Adicionar um brilho sutil ao card */
+.premium-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+    pointer-events: none;
+}
