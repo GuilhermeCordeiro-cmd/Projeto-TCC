@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trituno | Configurações</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/configuracoes.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo">
+            <h1>TRITUNO</h1>
+        </div>
+        
+        <nav class="menu">
+            <a href="licoes.html"><i class="fa-solid fa-house"></i> APRENDER</a>
+            <a href="loja.html"><i class="fa-solid fa-shopping-cart"></i> LOJA</a>
+            <a href="#" class="active"><i class="fa-solid fa-gear"></i> CONFIGURAÇÕES</a>
+        </nav>
+
+        <div class="user-progress">
+            <p>Progresso Geral</p>
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill" style="width: 0%;"></div>
+            </div>
+            <span id="progressText" class="progress-text">0% concluído</span>
+        </div>
+    </aside>
+
+<main class="main-content-wrapper">
+    <div class="navigation-header">
+        <a href="licoes.html" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Voltar para as Lições
+        </a>
+    </div>
+
+    <div class="profile-layout-grid">
+        
+        <!-- Coluna da Esquerda: Cartão de Perfil Principal -->
+        <div class="profile-left-column">
+            <div class="profile-main-card auth-box">
+                <div class="avatar-upload-container">
+                    <div class="avatar-preview">
+                        <i class="fas fa-user-musical"></i>
+                        <!-- Substitua por uma imagem padrão de avatar se preferir -->
+                        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=trituno" alt="Avatar do Usuário" id="user-avatar">
+                    </div>
+                    <button class="btn-change-avatar"><i class="fas fa-camera"></i></button>
+                </div>
+                
+                <h2 class="profile-display-name">Músico Aprendiz</h2>
+                <p class="profile-username">@musico_trituno</p>
+                <p class="profile-join-date"><i class="far fa-calendar-alt"></i> Entrou em Maio de 2026</p>
+            </div>
+
+            <!-- Bloco de Estatísticas do Usuário dentro do Perfil -->
+            <div class="stats-grid-container">
+                <div class="stat-card auth-box">
+                    <i class="fas fa-fire icon-streak"></i>
+                    <div class="stat-info">
+                        <span class="stat-value">7</span>
+                        <span class="stat-label">Dias de Ofensiva</span>
+                    </div>
+                </div>
+                <div class="stat-card auth-box">
+                    <i class="fas fa-bolt icon-xp"></i>
+                    <div class="stat-info">
+                        <span class="stat-value">1250</span>
+                        <span class="stat-label">XP Total</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coluna da Direita: Formulários e Ajustes Técnicos -->
+        <div class="profile-right-column">
+            <div class="settings-card auth-box">
+                <h3 class="settings-section-title">Dados da Conta</h3>
+                
+                <div class="input-group">
+                    <label>Nome Completo</label>
+                    <input type="text" value="Músico Aprendiz">
+                </div>
+
+                <div class="input-group">
+                    <label>E-mail</label>
+                    <input type="email" value="estudante@trituno.com.br">
+                </div>
+
+                <div class="input-group">
+                    <label>Nova Senha</label>
+                    <input type="password" placeholder="••••••••">
+                </div>
+            </div>
+
+            <div class="settings-card auth-box">
+                <h3 class="settings-section-title">Preferências de Áudio</h3>
+                
+                <div class="toggle-setting-item">
+                    <div class="toggle-text">
+                        <h4>Efeitos Sonoros</h4>
+                        <p>Sons de acerto, erro e interações do sistema.</p>
+                    </div>
+                    <label class="switch-custom">
+                        <input type="checkbox" checked>
+                        <span class="slider-round"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-setting-item">
+                    <div class="toggle-text">
+                        <h4>Metrônomo de Fundo</h4>
+                        <p>Ativar cliques de metrônomo durante lições rítmicas.</p>
+                    </div>
+                    <label class="switch-custom">
+                        <input type="checkbox">
+                        <span class="slider-round"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Ações Globais -->
+            <div class="settings-form-actions">
+                <button class="btn-primary">Salvar Alterações</button>
+            </div>
+        </div>
+
+    </div>
+</main>
