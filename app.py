@@ -160,7 +160,7 @@ def concluir_licao():
 
 # Inicializa o banco de dados e roda o servidor
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()  
-        print("Banco de dados RESETADO e CRIADO com as colunas certas!")
-    app.run(debug=True)
+    # Pega a porta que o Render oferece ou usa a 5000 como padrão local
+    porta = int(os.environ.get("PORT", 5000))
+    # O host OBRIGATORIAMENTE precisa ser 0.0.0.0 para funcionar na nuvem
+    app.run(host='0.0.0.0', port=porta)
