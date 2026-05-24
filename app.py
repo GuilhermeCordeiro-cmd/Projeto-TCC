@@ -71,7 +71,7 @@ def pagina_configuracoes():
 
 @app.route('/registro')
 def pagina_registro():
-    return render_template('meu-projeto/Registro.html')
+    return render_template('meu-projeto/registro.html')
 
 @app.route('/login')
 def pagina_login():
@@ -160,6 +160,14 @@ def concluir_licao():
 
 # Inicializa o banco de dados e roda o servidor
 if __name__ == '__main__':
+    # Garante que a pasta 'instance' exista antes de criar o banco de dados
+    os.makedirs(os.path.join(base_dir, 'instance'), exist_ok=True)
+    
+    # CRIA AS TABELAS NO BANCO DE DADOS AUTOMATICAMENTE
+    with app.app_context():
+        db.create_all()
+        print("Banco de dados e tabelas verificados/criados com sucesso!")
+
     # Pega a porta que o Render oferece ou usa a 5000 como padrão local
     porta = int(os.environ.get("PORT", 5000))
     # O host OBRIGATORIAMENTE precisa ser 0.0.0.0 para funcionar na nuvem
