@@ -42,70 +42,92 @@
     </main>
 
     <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyBrRC9ZETyyJlQncMkAdfg-kfhf9KfG-uY",
-    authDomain: "trituno.firebaseapp.com",
-    projectId: "trituno",
-    storageBucket: "trituno.firebasestorage.app",
-    messagingSenderId: "401176009057",
-    appId: "1:401176009057:web:d4e8caa56a90f1d44c4d20",
-    measurementId: "G-3YJYY7TDKL"
-  };
+        const firebaseConfig = {
+            apiKey: "AIzaSyBrRC9ZETyyJlQncMkAdfg-kfhf9KfG-uY",
+            authDomain: "trituno.firebaseapp.com",
+            projectId: "trituno",
+            storageBucket: "trituno.firebasestorage.app",
+            messagingSenderId: "401176009057",
+            appId: "1:401176009057:web:d4e8caa56a90f1d44c4d20",
+            measurementId: "G-3YJYY7TDKL"
+        };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
 
-  // --- LÓGICA DO OLHINHO ---
-  const togglePassword = document.querySelector('#eyeIcon');
-  const passwordInput = document.querySelector('#password');
+        // --- LÓGICA DO OLHINHO ---
+        const togglePassword = document.querySelector('#eyeIcon');
+        const passwordInput = document.querySelector('#password');
 
-  if (togglePassword) {
-    togglePassword.addEventListener('click', () => {
-      const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-      passwordInput.setAttribute('type', type);
-      
-      togglePassword.classList.toggle('fa-eye');
-      togglePassword.classList.toggle('fa-eye-slash');
-    });
-  }
+        if (togglePassword) {
+            togglePassword.addEventListener('click', () => {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                
+                togglePassword.classList.toggle('fa-eye');
+                togglePassword.classList.toggle('fa-eye-slash');
+            });
+        }
 
-  // --- LÓGICA DO LOGIN ---
-  const loginForm = document.getElementById('loginForm');
-  const passError = document.getElementById('passError');
+        // --- LÓGICA DO LOGIN COM PONTE FLASK ---
+        const loginForm = document.getElementById('loginForm');
+        const passError = document.getElementById('passError');
 
-  loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-    const email = document.getElementById('email').value;
-    const senha = passwordInput.value;
+            const email = document.getElementById('email').value;
+            const senha = passwordInput.value;
 
-    // Ajustado para 6 caracteres para bater com a regra de criação de conta do Firebase
-    if (senha.length < 6) {
-      passError.textContent = "A senha deve ter no mínimo 6 caracteres.";
-      passError.style.display = 'block';
-      return;
-    }
+            if (senha.length < 6) {
+                passError.textContent = "A senha deve ter no mínimo 6 caracteres.";
+                passError.style.display = 'block';
+                return;
+            }
 
-    try {
-      await signInWithEmailAndPassword(auth, email, senha);
-      
-      // Rota correta do Flask para onde o usuário vai ao logar!
-      window.location.href = "/licoes"; 
-    } catch (error) {
-      console.error(error);
-      alert("Erro ao entrar: Verifique seu e-mail e senha.");
-    }
-  });
+            try {
+                // 1. Autentica no Firebase com Google
+                const userCredential = await signInWithEmailAndPassword(auth, email, senha);
+                const user = userCredential.user;
 
-  // Limpar erro ao digitar (Ajustado para 6 também)
-  passwordInput.addEventListener('input', () => {
-    if (passwordInput.value.length >= 6) {
-      passError.style.display = 'none';
-    }
-  });
-</script>
+                // 2. FAZ A PONTE: Envia o UID para a rota do Flask salvar no trituno.db
+                const respostaFlask = await fetch('/api/salvar-usuario-firebase', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        uid: user.uid,
+                        email: user.email,
+                        nome: user.displayName || "Músico Aprendiz"
+                    })
+                });
+
+                const dadosBancoLocal = await respostaFlask.json();
+
+                // 3. Se o Flask deu OK, a sessão está liberada. Pode mudar de página!
+                if (dadosBancoLocal.status === "sucesso") {
+                    console.log("Sucesso! Sincronizado com o trituno.db.");
+                    window.location.href = "/licoes"; 
+                } else {
+                    alert("Erro ao sincronizar com o banco do TCC: " + dadosBancoLocal.mensagem);
+                }
+
+            } catch (error) {
+                console.error("Erro na autenticação:", error);
+                alert("Erro ao entrar: Verifique seu e-mail e senha.");
+            }
+        });
+
+        // Limpar erro ao digitar
+        passwordInput.addEventListener('input', () => {
+            if (passwordInput.value.length >= 6) {
+                passError.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>

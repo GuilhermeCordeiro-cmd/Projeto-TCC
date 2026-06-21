@@ -1,27 +1,32 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import os
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
-# Configuração robusta para o banco de dados rodar no lugar certo
+# ==============================================================================
+# CONFIGURAÇÕES DE SEGURANÇA E BANCO DE DADOS LOCAL (TCC)
+# ==============================================================================
+app.config['SECRET_KEY'] = 'chave_secreta_para_o_trituno_2026'
 base_dir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(base_dir, 'instance', 'trituno.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# =========================================
-# MODELO DO BANCO DE DADOS
-# =========================================
+# ==============================================================================
+# MODELOS DO BANCO DE DADOS (trituno.db)
+# ==============================================================================
+
 class Usuario(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(80), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False) # Obrigatório!
-    xp = db.Column(db.Integer, default=0)         
-    diamantes = db.Column(db.Integer, default=0)  
-    vidas = db.Column(db.Integer, default=5)       # Começa com 5 vidas!
-    bloqueado_ate = db.Column(db.DateTime, nullable=True) # Guarda o horário final do bloqueio   
+    # 🔥 O ID É STRING: Ele vai guardar exatamente o "UID do usuário" do Firebase!
+    id = db.Column(db.String(128), primary_key=True) 
+    nome = db.Column(db.String(100))
+    email = db.Column(db.String(100), unique=True)
+    xp = db.Column(db.Integer, default=0)
+    diamantes = db.Column(db.Integer, default=0)
+    vidas = db.Column(db.Integer, default=5)
+    bloqueado_ate = db.Column(db.DateTime, nullable=True)
 
 class Licao(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -31,144 +36,205 @@ class Licao(db.Model):
 
 class Progresso(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    # 🔥 VINCULO DIRETO: Amarra o progresso ao UID String do usuário logado
+    usuario_id = db.Column(db.String(128), db.ForeignKey('usuario.id'), nullable=False)
     licao_id = db.Column(db.Integer, db.ForeignKey('licao.id'), nullable=False)
-    concluido = db.Column(db.Boolean, default=True) 
+    concluido = db.Column(db.Boolean, default=True)
 
-# =========================================
-# ROTAS DO SITE
-# =========================================
+    # ==============================================================================
+# PARTE 2: FUNÇÕES DE SUPORTE E SINCRONIZAÇÃO DO FIREBASE
+# ==============================================================================
+
+def obter_usuario_sessao():
+    """
+    Busca no trituno.db o usuário correspondente ao UID do Firebase 
+    que está salvo na sessão do navegador do Flask.
+    """
+    uid_logado = session.get('usuario_id')
+    if not uid_logado:
+        return None
+    return Usuario.query.get(uid_logado)
+
+
+def calcular_barra_progresso(usuario):
+    """
+    Faz a regra de três real com base nas lições concluídas por este UID específico.
+    Se a tabela Licao estiver vazia no início, usa 5 como padrão (evita Erro 500).
+    """
+    total_licoes = Licao.query.count()
+    if total_licoes == 0: 
+        total_licoes = 5  
+        
+    licoes_concluidas = Progresso.query.filter_by(usuario_id=usuario.id, concluido=True).count()
+    return min(int((licoes_concluidas / total_licoes) * 100), 100)
+
+
+@app.route('/api/salvar-usuario-firebase', methods=['POST'])
+def salvar_usuario_firebase():
+    """
+    O CORAÇÃO DO INTERCÂMBIO:
+    Essa rota recebe o UID e o Email do Firebase logo após o login acontecer.
+    Se o usuário não existir no trituno.db, cria na hora. Se já existir, sincroniza.
+    """
+    dados = request.get_json(silent=True)
+    if not dados:
+        return jsonify({"status": "erro", "mensagem": "JSON inválido"}), 400
+
+    uid = dados.get('uid')       # O código alfanumérico longo do painel do Firebase
+    email = dados.get('email')   # O e-mail do usuário logado (ex: raulz@gmail.com)
+    nome = dados.get('nome') or "Músico Aprendiz"
+
+    if not uid or not email:
+        return jsonify({"status": "erro", "mensagem": "Dados obrigatórios ausentes"}), 400
+
+    try:
+        # Tenta achar o usuário usando o UID vindo do Firebase como chave de busca
+        usuario = Usuario.query.get(uid)
+        
+        if not usuario:
+            # Se é um cadastro novo no Firebase, espelha ele imediatamente no banco local do TCC
+            usuario = Usuario(id=uid, nome=nome, email=email, vidas=5, xp=0, diamantes=0)
+            db.session.add(usuario)
+            db.session.commit()
+            print(f"🆕 Usuário [{email}] registrado com sucesso no trituno.db via UID!")
+        else:
+            print(f"🔄 Usuário [{email}] já tem registro local. Sincronizando sessão.")
+
+        # 🔥 ESSENCIAL: Guarda o UID na sessão do Flask para blindar a navegação das páginas
+        session['usuario_id'] = uid
+        return jsonify({"status": "sucesso", "mensagem": "Usuário local sincronizado com Firebase"}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"💥 Falha ao sincronizar com banco local: {str(e)}")
+        return jsonify({"status": "erro", "mensagem": str(e)}), 500
+    
+    # ==============================================================================
+# PARTE 3: ROTAS DE NAVEGAÇÃO (BARRINHA SINCRO-REAL EM TODAS AS TELAS)
+# ==============================================================================
 
 @app.route('/')
 def pagina_home():
     return render_template('index.html')
 
-@app.route('/licoes')
-def pagina_licoes():
-    usuario = Usuario.query.first()
-    if not usuario:
-        # CORREÇÃO: Agora passamos um e-mail padrão para não quebrar a regra do banco!
-        usuario = Usuario(nome="Músico Aprendiz", email="teste@trituno.com")
-        db.session.add(usuario)
-        db.session.commit()
-    
-    return render_template('meu-projeto/licoes.html', usuario=usuario)
-
-@app.route('/loja')
-def pagina_loja():
-    usuario = Usuario.query.first()
-    return render_template('meu-projeto/loja.html', usuario=usuario)
-
-@app.route('/ranking')
-def pagina_ranking():
-    usuario = Usuario.query.first()
-    return render_template('meu-projeto/ranking.html', usuario=usuario)
-
-@app.route('/configuracoes')
-def pagina_configuracoes():
-    usuario = Usuario.query.first()
-    return render_template('meu-projeto/configuracoes.html', usuario=usuario)
-
-@app.route('/registro')
-def pagina_registro():
-    return render_template('meu-projeto/registro.html')
 
 @app.route('/login')
 def pagina_login():
     return render_template('meu-projeto/login.html')
 
-@app.route('/exercicio1')
-def pagina_exercicio1():
-    return render_template('modulo1/exercicio1.html')
 
-@app.route('/api/perder-vida', methods=['POST'])
-def perder_vida():
-    usuario = Usuario.query.first()
+@app.route('/registro')
+def pagina_registro():
+    return render_template('meu-projeto/registro.html')
+
+
+@app.route('/licoes')
+def pagina_licoes():
+    usuario = obter_usuario_sessao()
     if not usuario:
-        return jsonify({"status": "erro", "mensagem": "Usuário não encontrado"}), 404
+        return redirect(url_for('pagina_login'))
+    
+    # Busca a porcentagem unificada baseada no UID do Firebase
+    progresso = calcular_barra_progresso(usuario)
+    return render_template('meu-projeto/licoes.html', usuario=usuario, progresso=progresso)
 
-    if usuario.vidas > 0:
-        usuario.vidas -= 1
-        
-        # Se ele acabou de perder a última vida, bloqueia por 2 horas!
-        if usuario.vidas == 0:
-            usuario.bloqueado_ate = datetime.now() + timedelta(hours=2)
-            db.session.commit()
-            return jsonify({"status": "bloqueado", "mensagem": "Você perdeu todas as vidas!"}), 200
-            
-        db.session.commit()
-        return jsonify({"status": "sucesso", "vidas_restantes": usuario.vidas}), 200
-        
-    return jsonify({"status": "ja_bloqueado"}), 400
 
-@app.route('/introducao')
-def pagina_introducao():
-    usuario = Usuario.query.first()
+@app.route('/loja')
+def pagina_loja():
+    usuario = obter_usuario_sessao()
     if not usuario:
-        usuario = Usuario(nome="Músico Aprendiz", email="teste@trituno.com")
-        db.session.add(usuario)
-        db.session.commit()
+        return redirect(url_for('pagina_login'))
+    
+    progresso = calcular_barra_progresso(usuario)
+    return render_template('meu-projeto/loja.html', usuario=usuario, progresso=progresso)
 
-    # VERIFICAÇÃO DE BLOQUEIO NA PRIMEIRA LIÇÃO
-    if usuario.bloqueado_ate:
-        if datetime.now() < usuario.bloqueado_ate:
-            tempo_restante = usuario.bloqueado_ate - datetime.now()
-            minutos_restantes = int(tempo_restante.total_seconds() / 60)
-            
-            # Bloqueia o acesso direto e avisa que ele precisa de vidas
-            return f"""
-            <div style="text-align: center; font-family: sans-serif; margin-top: 50px;">
-                <h1>Acesso Bloqueado! 💔</h1>
-                <p>Você perdeu todas as suas vidas e não pode iniciar esta lição.</p>
-                <p>Aguarde mais <b>{minutos_restantes} minutos</b> para recuperar suas vidas ou passe na nossa loja!</p>
-                <br>
-                <a href='/licoes' style="background: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Voltar para as Lições</a>
-                <a href='/loja' style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-left: 10px;">Ir para a Loja</a>
-            </div>
-            """
-        else:
-            # Se o tempo já passou, libera o usuário limpando o bloqueio
-            usuario.vidas = 5
-            usuario.bloqueado_ate = None
-            db.session.commit()
 
-    # Se não estiver bloqueado, ele abre a lição normalmente!
-    return render_template('modulo1/introducao.html')
+@app.route('/ranking')
+def pagina_ranking():
+    usuario = obter_usuario_sessao()
+    if not usuario:
+        return redirect(url_for('pagina_login'))
+    
+    progresso = calcular_barra_progresso(usuario)
+    return render_template('meu-projeto/ranking.html', usuario=usuario, progresso=progresso)
 
-# ROTA PARA SALVAR O PROGRESSO QUE CRIAMOS ANTES
+
+@app.route('/configuracoes')
+def pagina_configuracoes():
+    usuario = obter_usuario_sessao()
+    if not usuario:
+        return redirect(url_for('pagina_login'))
+    
+    progresso = calcular_barra_progresso(usuario)
+    return render_template('meu-projeto/configuracoes.html', usuario=usuario, progresso=progresso)
+
+# ==============================================================================
+# PARTE 4: ROTAS DE JOGO (PROGRESSO/VIDAS) E INICIALIZAÇÃO DO SERVIDOR
+# ==============================================================================
+
 @app.route('/api/concluir-licao', methods=['POST'])
 def concluir_licao():
-    dados = request.get_json()
-    licao_id = dados.get('licao_id')
-    
-    usuario = Usuario.query.first() 
+    """
+    Salva a conclusão da lição associada ao UID do Firebase do usuário.
+    Garante que não haverá duplicados e adiciona 10 de XP ao usuário local.
+    """
+    usuario = obter_usuario_sessao()
     if not usuario:
-        return jsonify({"status": "erro", "mensagem": "Nenhum usuário encontrado"}), 404
+        return jsonify({"status": "erro", "mensagem": "Usuário não autenticado"}), 401
+
+    dados = request.get_json()
+    licao_id = dados.get('licao_id') if dados else 1
 
     try:
-        novo_progresso = Progresso(usuario_id=usuario.id, licao_id=licao_id)
-        db.session.add(novo_progresso)
+        # 🔥 Evita registros duplicados da mesma lição para o mesmo UID
+        ja_concluida = Progresso.query.filter_by(usuario_id=usuario.id, licao_id=licao_id).first()
         
-        # Agora a lição dá apenas XP! Diamantes vêm de anúncios/loja.
-        usuario.xp += 10 
-        db.session.commit()
-        return jsonify({"status": "sucesso", "mensagem": "Progresso salvo!"}), 200
+        if not ja_concluida:
+            novo_progresso = Progresso(usuario_id=usuario.id, licao_id=licao_id, concluido=True)
+            db.session.add(novo_progresso)
+            usuario.xp += 10 
+            db.session.commit()
+            print(f"🚀 Sucesso: Lição {licao_id} computada para o UID: {usuario.id}")
+            return jsonify({"status": "sucesso", "mensagem": "Progresso gravado localmente!"})
+        
+        return jsonify({"status": "sucesso", "mensagem": "Esta lição já havia sido concluída."})
+
     except Exception as e:
         db.session.rollback()
         return jsonify({"status": "erro", "mensagem": str(e)}), 500
 
 
-# Inicializa o banco de dados e roda o servidor
+@app.route('/api/perder-vida', methods=['POST'])
+def perder_vida():
+    """
+    Reduz uma vida do usuário. Se chegar a 0, gera um bloqueio de 2 horas.
+    """
+    usuario = obter_usuario_sessao()
+    if not usuario:
+        return jsonify({"status": "erro", "mensagem": "Usuário não localizado"}), 404
+
+    if usuario.vidas > 0:
+        usuario.vidas -= 1
+        if usuario.vidas == 0:
+            usuario.bloqueado_ate = datetime.now() + timedelta(hours=2)
+        db.session.commit()
+        return jsonify({"status": "sucesso", "vidas_restantes": usuario.vidas}), 200
+        
+    return jsonify({"status": "ja_bloqueado"}), 400
+
+
+# ==============================================================================
+# INICIALIZAÇÃO AUTOMÁTICA DO BANCO E DO SERVIDOR
+# ==============================================================================
 if __name__ == '__main__':
-    # Garante que a pasta 'instance' exista antes de criar o banco de dados
+    # Cria a pasta 'instance' de forma segura caso ela tenha sido deletada ou limpa no reset
     os.makedirs(os.path.join(base_dir, 'instance'), exist_ok=True)
     
-    # CRIA AS TABELAS NO BANCO DE DADOS AUTOMATICAMENTE
     with app.app_context():
+        # db.create_all() cria o arquivo trituno.db e as tabelas se não existirem.
+        # Se os arquivos já existirem, ele não apaga e mantém os dados salvos!
         db.create_all()
-        print("Banco de dados e tabelas verificados/criados com sucesso!")
-
-    # Pega a porta que o Render oferece ou usa a 5000 como padrão local
+    
+    # Define a porta padrão do Flask (5000) ou a do ambiente de hospedagem
     porta = int(os.environ.get("PORT", 5000))
-    # O host OBRIGATORIAMENTE precisa ser 0.0.0.0 para funcionar na nuvem
     app.run(host='0.0.0.0', port=porta)
