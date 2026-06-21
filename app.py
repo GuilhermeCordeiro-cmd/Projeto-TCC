@@ -138,6 +138,25 @@ def pagina_licoes():
     progresso = calcular_barra_progresso(usuario)
     return render_template('meu-projeto/licoes.html', usuario=usuario, progresso=progresso)
 
+@app.route('/introducao')
+def pagina_introducao():
+    # 1. Mantém a trava de segurança: se não tiver logado, vai pro login
+    usuario = obter_usuario_sessao()
+    if not usuario:
+        return redirect(url_for('pagina_login'))
+    
+    # 2. Renderiza o HTML puro, sem forçar variáveis que ele não usa
+    return render_template('modulo1/introducao.html')
+
+@app.route('/exercicio1')
+def pagina_exercicio1():
+    # Trava de segurança para garantir que o usuário está logado
+    usuario = obter_usuario_sessao()
+    if not usuario:
+        return redirect(url_for('pagina_login'))
+    
+    # Renderiza o HTML do exercício que está dentro da pasta modulo1
+    return render_template('modulo1/exercicio1.html')
 
 @app.route('/loja')
 def pagina_loja():
